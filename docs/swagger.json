@@ -1,0 +1,726 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для управления складом.",
+        "title": "warehouseControl API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "description": "Authenticate user and return JWT tokens",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "User login info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.JWTResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/refresh-token": {
+            "post": {
+                "description": "Refresh access and refresh tokens using existing refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Refresh JWT token",
+                "parameters": [
+                    {
+                        "description": "Refresh token request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.TokenRefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.JWTResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "description": "Create a new user account with role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserRegistrationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get item change history filtered by date range and optional filters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "List history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "From date (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item UUID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "created|updated|deleted",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "login substring",
+                        "name": "login",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/history.History"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/history/csv": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download item change history as CSV with same filters",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "Export history CSV",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "From date (YYYY-MM-DD)",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To date (YYYY-MM-DD)",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Item UUID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "created|updated|deleted",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "login substring",
+                        "name": "login",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV file"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/items": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of items",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "List items",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/item.Item"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new inventory item (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Create item",
+                "parameters": [
+                    {
+                        "description": "Item payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ItemCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/item.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/items/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a single item by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Get item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/item.Item"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update item fields (admin/manager)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Update item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated fields",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ItemUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/item.Item"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete item (admin only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Delete item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.ItemCreateRequest": {
+            "type": "object",
+            "required": [
+                "count",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.ItemUpdateRequest": {
+            "type": "object",
+            "required": [
+                "count",
+                "name",
+                "price"
+            ],
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.JWTResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TokenRefreshRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserLoginRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserRegistrationRequest": {
+            "type": "object",
+            "required": [
+                "login",
+                "password",
+                "role"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "history.History": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "changed_at": {
+                    "type": "string"
+                },
+                "changed_by": {
+                    "type": "string"
+                },
+                "changed_by_login": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_diff": {
+                    "$ref": "#/definitions/item.ItemDiff"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "new_item_snapshot": {
+                    "$ref": "#/definitions/item.Item"
+                },
+                "old_item_snapshot": {
+                    "$ref": "#/definitions/item.Item"
+                }
+            }
+        },
+        "item.FieldDiff": {
+            "type": "object",
+            "properties": {
+                "new": {},
+                "old": {}
+            }
+        },
+        "item.Item": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "item.ItemDiff": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/item.FieldDiff"
+            }
+        }
+    }
+}

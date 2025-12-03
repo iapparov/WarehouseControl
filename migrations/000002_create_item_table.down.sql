@@ -1,0 +1,1 @@
+DROP TABLE items IF EXISTS;

@@ -1,0 +1,44 @@
+server:
+  host: "localhost"
+  port: 8080
+
+logger:
+  level: "debug"
+
+gin:
+  mode: "release"
+
+db_config:
+  postgres:
+    host: "localhost"
+    port: 5433
+    ssl_mode: "disable"
+  max_open_conns: 5
+  max_idle_conns: 10
+  conn_max_lifetime: "100s"
+
+retry_strategy:
+  attempts: 3
+  delay: "1s"
+  backoffs: 2
+
+jwt:
+  jwt_exp_access_token: 15 # minutes
+  jwt_exp_refresh_token: 24 # hours
+
+username_config:
+  min_length: 3
+  max_length: 20
+  allowed_characters: "A-Za-z0-9_-"
+  case_insensitive: true
+
+password_config:
+  min_length: 8
+  max_length: 64
+  require_upper: true
+  require_lower: true
+  require_digit: true
+
+item_config:
+  name_min_length: 3
+  name_max_length: 40

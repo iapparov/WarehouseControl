@@ -1,0 +1,471 @@
+basePath: /
+definitions:
+  dto.ItemCreateRequest:
+    properties:
+      count:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - count
+    - name
+    - price
+    type: object
+  dto.ItemUpdateRequest:
+    properties:
+      count:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - count
+    - name
+    - price
+    type: object
+  dto.JWTResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  dto.TokenRefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  dto.UserLoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  dto.UserRegistrationRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    required:
+    - login
+    - password
+    - role
+    type: object
+  dto.UserResponse:
+    properties:
+      id:
+        type: string
+      login:
+        type: string
+      role:
+        type: string
+    type: object
+  history.History:
+    properties:
+      action:
+        type: string
+      changed_at:
+        type: string
+      changed_by:
+        type: string
+      changed_by_login:
+        type: string
+      id:
+        type: string
+      item_diff:
+        $ref: '#/definitions/item.ItemDiff'
+      item_id:
+        type: string
+      new_item_snapshot:
+        $ref: '#/definitions/item.Item'
+      old_item_snapshot:
+        $ref: '#/definitions/item.Item'
+    type: object
+  item.FieldDiff:
+    properties:
+      new: {}
+      old: {}
+    type: object
+  item.Item:
+    properties:
+      count:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  item.ItemDiff:
+    additionalProperties:
+      $ref: '#/definitions/item.FieldDiff'
+    type: object
+info:
+  contact: {}
+  description: API для управления складом.
+  title: warehouseControl API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT tokens
+      parameters:
+      - description: User login info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.JWTResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - users
+  /api/auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Refresh access and refresh tokens using existing refresh token
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TokenRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.JWTResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh JWT token
+      tags:
+      - users
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with role
+      parameters:
+      - description: User registration info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRegistrationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - users
+  /api/history:
+    get:
+      description: Get item change history filtered by date range and optional filters
+      parameters:
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Item UUID
+        in: query
+        name: id
+        type: string
+      - description: created|updated|deleted
+        in: query
+        name: action
+        type: string
+      - description: login substring
+        in: query
+        name: login
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/history.History'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List history
+      tags:
+      - history
+  /api/history/csv:
+    get:
+      description: Download item change history as CSV with same filters
+      parameters:
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Item UUID
+        in: query
+        name: id
+        type: string
+      - description: created|updated|deleted
+        in: query
+        name: action
+        type: string
+      - description: login substring
+        in: query
+        name: login
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: CSV file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Export history CSV
+      tags:
+      - history
+  /api/items:
+    get:
+      description: Get list of items
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/item.Item'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List items
+      tags:
+      - items
+    post:
+      consumes:
+      - application/json
+      description: Create a new inventory item (admin only)
+      parameters:
+      - description: Item payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ItemCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/item.Item'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create item
+      tags:
+      - items
+  /api/items/{id}:
+    delete:
+      description: Delete item (admin only)
+      parameters:
+      - description: Item UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete item
+      tags:
+      - items
+    get:
+      description: Get a single item by ID
+      parameters:
+      - description: Item UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/item.Item'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get item
+      tags:
+      - items
+    put:
+      consumes:
+      - application/json
+      description: Update item fields (admin/manager)
+      parameters:
+      - description: Item UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated fields
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ItemUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/item.Item'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update item
+      tags:
+      - items
+swagger: "2.0"

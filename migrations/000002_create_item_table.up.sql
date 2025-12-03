@@ -1,0 +1,6 @@
+CREATE TABLE items (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    count INTEGER NOT NULL,
+    price NUMERIC(10,2) NOT NULL
+);
